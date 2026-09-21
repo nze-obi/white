@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Volume Types" description="Manage block-storage volume types." path="/api/v3/volume/volume_type/list" needsProject={true} createOperationId="b21ad967_controller_create_volume_type_api" columns={["id", "name", "description", "is_public"]}/>}

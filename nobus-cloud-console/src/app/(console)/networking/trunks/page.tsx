@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Trunks" description="Manage network trunks and subports." path="/api/v3/network/trunk/list" needsProject={true} createOperationId="2e05e17a_controller_create_trunk_api" columns={["id", "name", "port_id", "status", "admin_state_up", "tenant_id"]}/>}

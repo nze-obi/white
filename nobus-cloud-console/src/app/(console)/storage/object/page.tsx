@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Object Storage" description="Manage FOS containers and object storage." path="/api/v3/fos/container" needsProject={true}  columns={["name", "count", "bytes", "last_modified"]}/>}

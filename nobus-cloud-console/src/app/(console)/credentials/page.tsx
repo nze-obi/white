@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Application Credentials" description="Manage application credentials for programmatic access." path="/api/v3/app-credentials" needsProject={false}  columns={["id", "name", "description", "expires_at", "unrestricted"]}/>}

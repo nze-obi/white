@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Keypairs" description="Manage SSH keypairs used by cloud instances." path="/api/v3/keypair/" needsProject={true} createOperationId="8ef1f0e7_controller_create_keypair_api" columns={["id", "name", "fingerprint", "type"]}/>}

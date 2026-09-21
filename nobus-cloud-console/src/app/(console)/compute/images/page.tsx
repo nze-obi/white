@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Images" description="Browse machine images available to the selected project." path="/api/v3/image/" needsProject={true}  columns={["id", "name", "status", "visibility", "size"]}/>}

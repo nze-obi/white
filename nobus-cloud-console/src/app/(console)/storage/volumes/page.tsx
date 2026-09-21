@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Volumes" description="Manage block storage, snapshots, backups and transfers." path="/api/v3/volume/list" needsProject={true}  columns={["id", "name", "status", "size", "volume_type", "bootable"]}/>}

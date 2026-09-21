@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Floating IPs" description="Allocate and manage public IP addresses." path="/api/v3/network/floating-ip/list" needsProject={true}  columns={["id", "floating_ip_address", "fixed_ip_address", "status", "port_id", "router_id"]}/>}

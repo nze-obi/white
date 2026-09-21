@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Snapshots" description="Manage point-in-time volume snapshots." path="/api/v3/volume/snapshot/list" needsProject={true} createOperationId="98942423_controller_create_snapshot_api" columns={["id", "name", "status", "size", "volume_id", "created_at"]}/>}

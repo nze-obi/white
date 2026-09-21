@@ -1,0 +1,3 @@
+import { NextRequest,NextResponse } from "next/server";
+export function middleware(req:NextRequest){ const auth=Boolean(req.cookies.get("nobus_api_key")?.value); const login=req.nextUrl.pathname.startsWith("/login"); if(!auth&&!login){ const u=req.nextUrl.clone(); u.pathname="/login"; u.searchParams.set("next",req.nextUrl.pathname); return NextResponse.redirect(u); } if(auth&&login){ const u=req.nextUrl.clone(); u.pathname="/dashboard"; u.search=""; return NextResponse.redirect(u); } return NextResponse.next(); }
+export const config={matcher:["/((?!api|_next/static|_next/image|favicon.ico).*)"]};

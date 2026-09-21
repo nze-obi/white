@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Security Groups" description="Control instance network access policies." path="/api/v3/network/security-group/list" needsProject={true}  columns={["id", "name", "description", "tenant_id", "stateful"]}/>}

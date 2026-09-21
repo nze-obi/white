@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Projects" description="Manage cloud projects and tenancy context." path="/api/v3/project/" needsProject={false} createOperationId="c023cc70_controller_create_project_api" columns={["id", "name", "description", "enabled", "is_default", "az"]}/>}

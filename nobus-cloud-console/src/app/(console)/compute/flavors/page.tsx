@@ -1,0 +1,1 @@
+import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Flavors" description="Browse compute shapes for CPU, RAM and disk capacity." path="/api/v3/flavor/" needsProject={true}  columns={["id", "name", "vcpus", "ram", "disk"]}/>}
