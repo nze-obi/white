@@ -1,34 +1,55 @@
-import { NextRequest, NextResponse } from "next/server";
+import {
+  NextRequest,
+  NextResponse,
+} from "next/server";
+
 import {
   callNobus,
   getCookieOptions,
 } from "@/lib/server-api";
 
-export async function POST(req: NextRequest) {
-  const body = await req.text();
+export async function POST(
+  req: NextRequest,
+) {
+  const body =
+    await req.text();
 
-  const login = await callNobus(
-    "/api/v3/auth/login/complete",
-    {
-      method: "POST",
-      body,
-    },
-  );
+  /*
+   * Complete the verification-code
+   * login with the Nobus API.
+   */
+  const login =
+    await callNobus(
+      "/api/v3/auth/login/complete",
+      {
+        method: "POST",
+        body,
+      },
+    );
 
-  const text = await login.text();
+  const text =
+    await login.text();
 
   if (!login.ok) {
-    return new NextResponse(text, {
-      status: login.status,
-      headers: {
-        "Content-Type": "application/json",
+    return new NextResponse(
+      text,
+      {
+        status:
+          login.status,
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
       },
-    });
+    );
   }
 
-  const data = JSON.parse(text);
+  const data =
+    JSON.parse(text);
 
-  const token = data.token;
+  const token =
+    data.token;
 
   if (!token) {
     return NextResponse.json(
@@ -42,35 +63,74 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const keyRes = await callNobus(
-    "/api/v3/auth/api-key",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: "{}",
-    },
-  );
+  /*
+   * Exchange the login token for the
+   * Nobus API key used by the console.
+   */
+  const keyRes =
+    await callNobus(
+      "/api/v3/auth/api-key",
+      {
+        method: "POST",
 
-  const keyText = await keyRes.text();
+        headers: {
+          Authorization:
+            `Bearer ${token}`,
+        },
+
+        body: "{}",
+      },
+    );
+
+  const keyText =
+    await keyRes.text();
 
   if (!keyRes.ok) {
-    return new NextResponse(keyText, {
-      status: keyRes.status,
-      headers: {
-        "Content-Type": "application/json",
+    return new NextResponse(
+      keyText,
+      {
+        status:
+          keyRes.status,
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
       },
-    });
+    );
   }
 
-  const apiKey = JSON.parse(keyText).api_key;
+  const keyData =
+    JSON.parse(keyText);
 
-  const out = NextResponse.json({
-    ok: true,
-  });
+  const apiKey =
+    keyData.api_key;
 
-  const cookieOptions = getCookieOptions(req);
+  if (!apiKey) {
+    return NextResponse.json(
+      {
+        message:
+          "API key response did not contain an API key.",
+      },
+      {
+        status: 502,
+      },
+    );
+  }
+
+  const out =
+    NextResponse.json({
+      ok: true,
+    });
+
+  /*
+   * Automatically uses:
+   *
+   * secure=false on local HTTP
+   * secure=true on HTTPS
+   */
+  const cookieOptions =
+    getCookieOptions(req);
 
   out.cookies.set(
     "nobus_token",
