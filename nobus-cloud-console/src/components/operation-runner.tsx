@@ -21,8 +21,14 @@ import { titleCase } from "@/lib/utils";
 
 function coerce(value: string, type: string) {
   if (value === "") return undefined;
-  if (type === "boolean") return value === "true";
-  if (type === "integer" || type === "number") return Number(value);
+
+  if (type === "boolean") {
+    return value === "true";
+  }
+
+  if (type === "integer" || type === "number") {
+    return Number(value);
+  }
 
   if (type === "array" || type === "object") {
     try {
@@ -41,7 +47,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function OperationRunner({ op }: { op: Operation }) {
   const cloud = useCloudContext();
-  const fields = useMemo(() => schemaFields(op.requestSchema), [op]);
+
+  const fields = useMemo(
+    () => schemaFields(op.requestSchema),
+    [op],
+  );
 
   const [values, setValues] = useState<Record<string, string>>({});
   const [files, setFiles] = useState<Record<string, File>>({});
@@ -67,10 +77,7 @@ export function OperationRunner({ op }: { op: Operation }) {
   }
 
   async function run() {
-    if (
-      destructive &&
-      !confirm(`Confirm: ${op.summary}?`)
-    ) {
+    if (destructive && !confirm(`Confirm: ${op.summary}?`)) {
       return;
     }
 
@@ -96,11 +103,9 @@ export function OperationRunner({ op }: { op: Operation }) {
        */
       let path = op.path;
 
-      for (
-        const parameter of op.parameters.filter(
-          (item) => item.in === "path",
-        )
-      ) {
+      for (const parameter of op.parameters.filter(
+        (item) => item.in === "path",
+      )) {
         path = path.replace(
           `{${parameter.name}}`,
           encodeURIComponent(
@@ -121,8 +126,7 @@ export function OperationRunner({ op }: { op: Operation }) {
           continue;
         }
 
-        const raw =
-          values[field.name] ?? auto(field.name);
+        const raw = values[field.name] ?? auto(field.name);
 
         const value = coerce(
           raw,
@@ -137,25 +141,16 @@ export function OperationRunner({ op }: { op: Operation }) {
       /*
        * Nobus API compatibility.
        *
-       * Some live Nobus handlers require project_id and/or
-       * availability_zone as query parameters even when the
-       * OpenAPI request schema also lists them in the JSON body.
+       * Some Nobus endpoints require project_id and/or
+       * availability_zone in the query string even when
+       * OpenAPI also defines them in the JSON body.
        *
-       * Therefore, whenever either field exists in the body
-       * schema, send it in BOTH:
-       *
-       *   - JSON body
-       *   - query string
-       *
-       * This keeps compatibility with endpoints using either
-       * validation style.
+       * Send them in both places when they exist.
        */
-      for (
-        const contextField of [
-          "project_id",
-          "availability_zone",
-        ] as const
-      ) {
+      for (const contextField of [
+        "project_id",
+        "availability_zone",
+      ] as const) {
         const existsInBodySchema = fields.some(
           (field) => field.name === contextField,
         );
@@ -164,8 +159,7 @@ export function OperationRunner({ op }: { op: Operation }) {
           continue;
         }
 
-        const existingQueryValue =
-          query[contextField];
+        const existingQueryValue = query[contextField];
 
         if (
           existingQueryValue !== undefined &&
@@ -176,8 +170,7 @@ export function OperationRunner({ op }: { op: Operation }) {
         }
 
         const value =
-          body[contextField] ??
-          auto(contextField);
+          body[contextField] ?? auto(contextField);
 
         if (
           value !== undefined &&
@@ -193,10 +186,7 @@ export function OperationRunner({ op }: { op: Operation }) {
       /*
        * Multipart request support.
        */
-      if (
-        op.requestContentType ===
-        "multipart/form-data"
-      ) {
+      if (op.requestContentType === "multipart/form-data") {
         const formData = new FormData();
 
         for (const field of fields) {
@@ -204,14 +194,9 @@ export function OperationRunner({ op }: { op: Operation }) {
             const file = files[field.name];
 
             if (file) {
-              formData.append(
-                field.name,
-                file,
-              );
+              formData.append(field.name, file);
             }
-          } else if (
-            body[field.name] !== undefined
-          ) {
+          } else if (body[field.name] !== undefined) {
             const value = body[field.name];
 
             formData.append(
@@ -231,15 +216,12 @@ export function OperationRunner({ op }: { op: Operation }) {
           },
         );
 
-        const text =
-          await rawResponse.text();
+        const text = await rawResponse.text();
 
         let data: unknown = null;
 
         try {
-          data = text
-            ? JSON.parse(text)
-            : null;
+          data = text ? JSON.parse(text) : null;
         } catch {
           data = text;
         }
@@ -254,25 +236,20 @@ export function OperationRunner({ op }: { op: Operation }) {
                 ? data.detail
                 : `Request failed (${rawResponse.status})`;
 
-          throw Object.assign(
-            new Error(message),
-            {
-              payload: data,
-            },
-          );
+          throw Object.assign(new Error(message), {
+            payload: data,
+          });
         }
 
         response = data;
       } else {
         /*
-         * Normal JSON API request.
+         * Normal JSON request.
          */
         response = await apiRequest(
           `${path}${qs(query)}`,
           {
-            method:
-              op.method.toUpperCase(),
-
+            method: op.method.toUpperCase(),
             body:
               fields.length > 0
                 ? JSON.stringify(body)
@@ -283,10 +260,7 @@ export function OperationRunner({ op }: { op: Operation }) {
 
       setResult(response);
     } catch (caught: unknown) {
-      if (
-        isRecord(caught) &&
-        "payload" in caught
-      ) {
+      if (isRecord(caught) && "payload" in caught) {
         setError(caught.payload);
       } else {
         setError({
@@ -327,17 +301,15 @@ export function OperationRunner({ op }: { op: Operation }) {
 
       <p className="mt-1 text-sm text-slate-500">
         {op.tag} · Auth:{" "}
-        {op.security.join(", ") ||
-          "none documented"}
+        {op.security.join(", ") || "none documented"}
       </p>
 
       {destructive && (
         <div className="mt-5 flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           <AlertTriangle className="h-4 w-4 shrink-0" />
 
-          This operation can modify or remove cloud
-          resources. You will be asked to confirm
-          before execution.
+          This operation can modify or remove cloud resources.
+          You will be asked to confirm before execution.
         </div>
       )}
 
@@ -349,38 +321,24 @@ export function OperationRunner({ op }: { op: Operation }) {
             </h3>
 
             <div className="space-y-3">
-              {op.parameters.map(
-                (parameter) => (
-                  <Field
-                    key={parameter.name}
-                    name={parameter.name}
-                    schema={
-                      parameter.schema ||
-                      {}
-                    }
-                    required={
-                      parameter.required
-                    }
-                    value={
-                      params[
-                        parameter.name
-                      ] ??
-                      auto(
-                        parameter.name,
-                      )
-                    }
-                    set={(value) =>
-                      setParams(
-                        (current) => ({
-                          ...current,
-                          [parameter.name]:
-                            value,
-                        }),
-                      )
-                    }
-                  />
-                ),
-              )}
+              {op.parameters.map((parameter) => (
+                <Field
+                  key={parameter.name}
+                  name={parameter.name}
+                  schema={parameter.schema || {}}
+                  required={parameter.required}
+                  value={
+                    params[parameter.name] ??
+                    auto(parameter.name)
+                  }
+                  set={(value) =>
+                    setParams((current) => ({
+                      ...current,
+                      [parameter.name]: value,
+                    }))
+                  }
+                />
+              ))}
             </div>
           </section>
         )}
@@ -391,56 +349,36 @@ export function OperationRunner({ op }: { op: Operation }) {
               Request body{" "}
               {op.requestSchemaName && (
                 <span className="font-normal normal-case">
-                  (
-                  {
-                    op.requestSchemaName
-                  }
-                  )
+                  ({op.requestSchemaName})
                 </span>
               )}
             </h3>
 
             <div className="space-y-3">
-              {fields.map(
-                (field) => (
-                  <Field
-                    key={field.name}
-                    name={field.name}
-                    schema={
-                      field.schema
-                    }
-                    required={
-                      field.required
-                    }
-                    value={
-                      values[
-                        field.name
-                      ] ??
-                      auto(
-                        field.name,
-                      )
-                    }
-                    set={(value) =>
-                      setValues(
-                        (current) => ({
-                          ...current,
-                          [field.name]:
-                            value,
-                        }),
-                      )
-                    }
-                    setFile={(file) =>
-                      setFiles(
-                        (current) => ({
-                          ...current,
-                          [field.name]:
-                            file,
-                        }),
-                      )
-                    }
-                  />
-                ),
-              )}
+              {fields.map((field) => (
+                <Field
+                  key={field.name}
+                  name={field.name}
+                  schema={field.schema}
+                  required={field.required}
+                  value={
+                    values[field.name] ??
+                    auto(field.name)
+                  }
+                  set={(value) =>
+                    setValues((current) => ({
+                      ...current,
+                      [field.name]: value,
+                    }))
+                  }
+                  setFile={(file) =>
+                    setFiles((current) => ({
+                      ...current,
+                      [field.name]: file,
+                    }))
+                  }
+                />
+              ))}
             </div>
           </section>
         )}
@@ -448,23 +386,16 @@ export function OperationRunner({ op }: { op: Operation }) {
 
       <Button
         className="mt-6"
-        variant={
-          destructive
-            ? "danger"
-            : "primary"
-        }
+        variant={destructive ? "danger" : "primary"}
         disabled={busy}
         onClick={run}
       >
         <Play className="h-4 w-4" />
 
-        {busy
-          ? "Running…"
-          : "Run operation"}
+        {busy ? "Running…" : "Run operation"}
       </Button>
 
-      {(result !== null ||
-        error !== null) && (
+      {(result !== null || error !== null) && (
         <section className="mt-6">
           <h3 className="mb-2 text-sm font-semibold">
             Response
@@ -477,11 +408,7 @@ export function OperationRunner({ op }: { op: Operation }) {
                 : "bg-slate-950 text-slate-100"
             }`}
           >
-            {JSON.stringify(
-              error ?? result,
-              null,
-              2,
-            )}
+            {JSON.stringify(error ?? result, null, 2)}
           </pre>
         </section>
       )}
@@ -504,12 +431,21 @@ function Field({
   set: (value: string) => void;
   setFile?: (value: File) => void;
 }) {
-  const type =
-    primitiveType(schema);
+  const type = primitiveType(schema);
+
+  /*
+   * Make fields that expect resource IDs clearer.
+   */
+  const displayName =
+    name === "image"
+      ? "Image ID"
+      : name === "flavor"
+        ? "Flavor ID"
+        : titleCase(name);
 
   const label = (
     <span className="mb-1.5 block text-sm font-medium">
-      {titleCase(name)}
+      {displayName}
 
       {required && (
         <span className="text-red-500">
@@ -532,13 +468,9 @@ function Field({
         <Input
           type="file"
           onChange={(event) => {
-            const file =
-              event.target.files?.[0];
+            const file = event.target.files?.[0];
 
-            if (
-              file &&
-              setFile
-            ) {
+            if (file && setFile) {
               setFile(file);
             }
           }}
@@ -574,10 +506,7 @@ function Field({
     );
   }
 
-  if (
-    type === "array" ||
-    type === "object"
-  ) {
+  if (type === "array" || type === "object") {
     return (
       <label>
         {label}
@@ -588,9 +517,7 @@ function Field({
             set(event.target.value)
           }
           placeholder={
-            type === "array"
-              ? "[]"
-              : "{}"
+            type === "array" ? "[]" : "{}"
           }
         />
       </label>
@@ -603,9 +530,7 @@ function Field({
 
       <Input
         type={
-          /password|secret/i.test(
-            name,
-          )
+          /password|secret/i.test(name)
             ? "password"
             : type === "integer" ||
                 type === "number"
@@ -617,11 +542,8 @@ function Field({
           set(event.target.value)
         }
         placeholder={
-          schema.default !==
-          undefined
-            ? String(
-                schema.default,
-              )
+          schema.default !== undefined
+            ? String(schema.default)
             : ""
         }
       />
