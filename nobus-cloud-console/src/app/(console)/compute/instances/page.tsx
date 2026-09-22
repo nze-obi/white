@@ -1,1 +1,24 @@
-import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Instances" description="Create, inspect and operate virtual machine instances." path="/api/v3/instance/list" needsProject={true} createOperationId="6bc0659b_controller_create_instance_api" columns={["id", "name", "status", "image_name", "flavor_name", "ipv4", "ipv6"]}/>}
+import {
+  ResourceBrowser,
+} from "@/components/resource-browser";
+
+export default function InstancesPage() {
+  return (
+    <ResourceBrowser
+      title="Instances"
+      description="Create and manage virtual machines, networking, storage, security groups, and compute actions."
+      path="/api/v3/instance/list"
+      createOperationId="6bc0659b_controller_create_instance_api"
+      columns={[
+        "name",
+        "status",
+        "addresses",
+        "flavor",
+        "image",
+        "key_name",
+        "created",
+        "id",
+      ]}
+    />
+  );
+}

@@ -5,17 +5,12 @@ import {
 
 import {
   callNobus,
-  jsonResponse,
   checkOrigin,
+  jsonResponse,
 } from "@/lib/server-api";
 
 async function forward(
   req: NextRequest,
-  context: {
-    params: Promise<{
-      path: string[];
-    }>;
-  },
 ) {
   if (
     req.method !== "GET" &&
@@ -50,38 +45,23 @@ async function forward(
   }
 
   /*
-   * IMPORTANT:
-   *
-   * Do NOT reconstruct the Nobus URL from
-   * context.params because doing:
-   *
-   *   "/" + path.join("/")
-   *
-   * removes trailing slashes.
-   *
-   * Some Nobus endpoints such as:
-   *
-   *   /api/v3/keypair/
-   *
-   * require that trailing slash.
+   * Preserve the exact proxied pathname, including a trailing slash.
+   * This is important for endpoints such as /api/v3/keypair/ where
+   * losing the slash can trigger a redirect and change POST behavior.
    */
-  const proxyPrefix =
-    "/api/proxy";
-
-  let upstreamPath =
+  const targetPath =
     req.nextUrl.pathname.slice(
-      proxyPrefix.length,
+      "/api/proxy".length,
     );
 
-  if (!upstreamPath) {
-    upstreamPath = "/";
-  }
-
   const target =
-    `${upstreamPath}${req.nextUrl.search}`;
+    `${targetPath}${req.nextUrl.search}`;
 
   const hasBody =
-    !["GET", "HEAD"].includes(
+    ![
+      "GET",
+      "HEAD",
+    ].includes(
       req.method,
     );
 
@@ -90,51 +70,51 @@ async function forward(
       "content-type",
     ) || "";
 
-  let body:
-    | string
-    | ArrayBuffer
-    | undefined;
-
-  if (hasBody) {
-    if (
-      contentType.includes(
-        "multipart/form-data",
-      )
-    ) {
-      body =
-        await req.arrayBuffer();
-    } else {
-      body =
-        await req.text();
-    }
-  }
+  const body =
+    hasBody
+      ? contentType.includes(
+          "multipart/form-data",
+        )
+        ? await req.arrayBuffer()
+        : await req.text()
+      : undefined;
 
   const headers:
-    Record<string, string> = {
+    Record<
+      string,
+      string
+    > = {
       Authorization:
         `Bearer ${key}`,
     };
 
   if (contentType) {
-    headers["Content-Type"] =
-      contentType;
+    headers[
+      "Content-Type"
+    ] = contentType;
   }
 
-  const res =
+  const response =
     await callNobus(
       target,
       {
-        method: req.method,
+        method:
+          req.method,
         headers,
         body,
       },
     );
 
-  if (res.status === 401) {
-    const response =
-      await jsonResponse(res);
+  if (
+    response.status ===
+    401
+  ) {
+    const result =
+      await jsonResponse(
+        response,
+      );
 
-    response.cookies.set(
+    result.cookies.set(
       "nobus_api_key",
       "",
       {
@@ -143,10 +123,12 @@ async function forward(
       },
     );
 
-    return response;
+    return result;
   }
 
-  return jsonResponse(res);
+  return jsonResponse(
+    response,
+  );
 }
 
 export const GET = forward;

@@ -1,1 +1,22 @@
-import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Trunks" description="Manage network trunks and subports." path="/api/v3/network/trunk/list" needsProject={true} createOperationId="2e05e17a_controller_create_trunk_api" columns={["id", "name", "port_id", "status", "admin_state_up", "tenant_id"]}/>}
+import {
+  ResourceBrowser,
+} from "@/components/resource-browser";
+
+export default function TrunksPage() {
+  return (
+    <ResourceBrowser
+      title="Trunks"
+      description="Create and manage network trunks that connect a parent port to VLAN-tagged subports."
+      path="/api/v3/network/trunk/list"
+      createOperationId="2e05e17a_controller_create_trunk_api"
+      columns={[
+        "name",
+        "status",
+        "port_id",
+        "sub_ports",
+        "description",
+        "id",
+      ]}
+    />
+  );
+}

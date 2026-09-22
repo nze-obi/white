@@ -1,2 +1,95 @@
-"use client"; import { useBrand } from "@/components/brand-context"; import { useCloudContext } from "@/components/cloud-context"; import { Card,Input,PageHeader } from "@/components/ui";
-export default function Settings(){const c=useCloudContext();const brand=useBrand();return <><PageHeader title="Console settings" description="Deployment branding and active cloud context."/><div className="grid gap-6 lg:grid-cols-2"><Card className="p-6"><h2 className="font-semibold">Cloud context</h2><div className="mt-5 space-y-4"><label className="block text-sm font-medium">Project ID<Input className="mt-1.5" value={c.projectId} onChange={e=>c.setProjectId(e.target.value)}/></label><label className="block text-sm font-medium">Availability zone<Input className="mt-1.5" value={c.availabilityZone} onChange={e=>c.setAvailabilityZone(e.target.value)}/></label></div></Card><Card className="p-6"><h2 className="font-semibold">White-label brand</h2><dl className="mt-5 space-y-4 text-sm"><div><dt className="text-slate-500">Name</dt><dd className="font-medium">{brand.name}</dd></div><div><dt className="text-slate-500">Primary color</dt><dd className="mt-1 flex items-center gap-2 font-mono"><span className="h-5 w-5 rounded border" style={{background:brand.primary}}/>{brand.primary}</dd></div><div><dt className="text-slate-500">Configuration</dt><dd className="mt-1 text-slate-700">Set NEXT_PUBLIC_BRAND_* environment variables per reseller deployment.</dd></div></dl></Card></div></>}
+"use client";
+
+import { useState } from "react";
+import { RefreshCw } from "lucide-react";
+
+import {
+  Button,
+  Card,
+  PageHeader,
+} from "@/components/ui";
+
+export default function SettingsPage() {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function refreshApiKey() {
+    setBusy(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(
+        "/api/auth/refresh",
+        {
+          method: "POST",
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            "Unable to refresh API key.",
+        );
+      }
+
+      setMessage(
+        "API key refreshed successfully.",
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to refresh API key.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <PageHeader
+        title="Settings"
+        description="Manage your Nobus Cloud console session and configuration."
+      />
+
+      <div className="grid gap-6">
+        <Card className="p-5 sm:p-6">
+          <h2 className="text-lg font-semibold">
+            API Session
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Refresh the API key used by this cloud
+            console without signing out.
+          </p>
+
+          <Button
+            className="mt-5"
+            variant="secondary"
+            disabled={busy}
+            onClick={refreshApiKey}
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${
+                busy ? "animate-spin" : ""
+              }`}
+            />
+
+            {busy
+              ? "Refreshing…"
+              : "Refresh API key"}
+          </Button>
+
+          {message && (
+            <p className="mt-4 text-sm text-slate-600">
+              {message}
+            </p>
+          )}
+        </Card>
+      </div>
+    </>
+  );
+}

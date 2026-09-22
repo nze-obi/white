@@ -1,1 +1,21 @@
-import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="QoS Policies" description="Manage network quality-of-service policies." path="/api/v3/network/qos-policy/list" needsProject={true} createOperationId="f027212e_controller_create_qos_policy_api" columns={["id", "name", "description", "shared", "is_default", "tenant_id"]}/>}
+import {
+  ResourceBrowser,
+} from "@/components/resource-browser";
+
+export default function QosPoliciesPage() {
+  return (
+    <ResourceBrowser
+      title="QoS Policies"
+      description="Create and manage network Quality of Service policies for traffic control and prioritization."
+      path="/api/v3/network/qos-policy/list"
+      createOperationId="f027212e_controller_create_qos_policy_api"
+      columns={[
+        "name",
+        "description",
+        "shared",
+        "tags",
+        "id",
+      ]}
+    />
+  );
+}

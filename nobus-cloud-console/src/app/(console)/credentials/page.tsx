@@ -1,1 +1,19 @@
-import { ResourceBrowser } from "@/components/resource-browser"; export default function Page(){return <ResourceBrowser title="Application Credentials" description="Manage application credentials for programmatic access." path="/api/v3/app-credentials" needsProject={false}  columns={["id", "name", "description", "expires_at", "unrestricted"]}/>}
+import { ResourceBrowser } from "@/components/resource-browser";
+
+export default function CredentialsPage() {
+  return (
+    <ResourceBrowser
+      title="Application Credentials"
+      description="Create and manage application credentials for API and automation access."
+      path="/api/v3/app-credentials"
+      createOperationId="86714d71_controller_create_app_credential_api"
+      columns={[
+        "name",
+        "description",
+        "expires_at",
+        "unrestricted",
+        "id",
+      ]}
+    />
+  );
+}
